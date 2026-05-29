@@ -1,1 +1,0 @@
-/home/bryan/capture-ocr/screen_captures/target/debug/CaptureOCR: /home/bryan/capture-ocr/screen_captures/src/ipc_server/ipc.rs /home/bryan/capture-ocr/screen_captures/src/ipc_server/socket_config.rs /home/bryan/capture-ocr/screen_captures/src/ipc_server.rs /home/bryan/capture-ocr/screen_captures/src/main.rs
