@@ -1,1 +1,88 @@
-/target
+# ========================================
+# Rust / Cargo
+# ========================================
+
+/target/
+
+# Si es una aplicación final, normalmente sí se versiona Cargo.lock.
+# Si es una librería, normalmente no.
+# Elimina la línea anterior si quieres conservar Cargo.lock.
+
+# Archivos de respaldo del compilador
+**/*.rs.bk
+
+# ========================================
+# Python
+# ========================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Distribución y empaquetado
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Cachés y herramientas
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ========================================
+# IDEs y editores
+# ========================================
+
+.vscode/
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# ========================================
+# Sistema operativo
+# ========================================
+
+.DS_Store
+Thumbs.db
+
+# ========================================
+# Logs y temporales
+# ========================================
+
+*.log
+*.tmp
+*.temp
+
+# ========================================
+# Variables de entorno y secretos
+# ========================================
+
+.env
+.env.*
+!.env.example
+
+# ========================================
+# Binarios generados por OCR o capturas
+# (ajusta según tu proyecto)
+# ========================================
+
+screenshots/
+captures/
+output/
