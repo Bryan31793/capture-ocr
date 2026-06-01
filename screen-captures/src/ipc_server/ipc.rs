@@ -11,7 +11,7 @@ use std::time::Duration;
 use crate::ipc_server::socket_config::SocketConfig;
 
 // Starts the Inter-process Communication between rust and python
-pub fn start_ipc(socket_config: &SocketConfig) {
+pub fn start_ipc(socket_config: &SocketConfig, message: &str) {
     // que pasa si tengo dos procesoss con el mismo socket_path??
     let _ = std::fs::remove_file(socket_config.path());
 
@@ -36,7 +36,7 @@ pub fn start_ipc(socket_config: &SocketConfig) {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                match handle_client(&mut stream) {
+                match handle_client(&mut stream, message) {
                     Ok(_) => {
                         println!("comunicacion exitosa");
                     }
@@ -93,7 +93,7 @@ fn spawn_python_client(program: &str, process_path: &str) {
 /// 
 /// # Parameters
 /// - stream: The bidirectional connection with the client
-fn handle_client(stream: &mut UnixStream) -> IoResult<()> {
+fn handle_client(stream: &mut UnixStream, message_screenshot: &str) -> IoResult<()> {
     let mut buffer: [u8; 1024] = [0; 1024];
 
     let n_bytes = stream.read(&mut buffer)?;
@@ -101,7 +101,7 @@ fn handle_client(stream: &mut UnixStream) -> IoResult<()> {
     let message = String::from_utf8_lossy(&buffer[..n_bytes]);
     println!("Recibido desde rust: {}", message);
 
-    stream.write_all(b"Ok")?;
+    stream.write_all(message_screenshot.as_bytes())?;
 
     Ok(())
 }

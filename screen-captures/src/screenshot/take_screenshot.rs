@@ -1,6 +1,8 @@
+//use adw::gio::FileAttributeType::String;
+//use adw::glib::VariantClass::String;
 use ashpd::desktop::screenshot::Screenshot;
 
-pub async fn take_screenshot_proto() {
+pub async fn take_screenshot_proto() -> Option<std::string::String> {
     let screenshot = Screenshot::request()
         .interactive(true)
         .send().await;
@@ -13,18 +15,24 @@ pub async fn take_screenshot_proto() {
                 }
                 Err(e) => {
                     println!("Error en la screenshot: {}", e);
-                    return;
+                    return None;
                 }
             }
         }
         Err(e) => {
             println!("Error en la request de la screenshot: {}", e);
-            return;
+            return None;
         }
     };
     
-    let uri = uri_screenshot.uri();
-    println!("URI: {}", uri.as_str());
+    Some(
+        std::string::String::from(
+            uri_screenshot
+            .uri()
+            .as_str()
+        )
+    )
+    //println!("URI: {}", uri.as_str());
 }
 
 
