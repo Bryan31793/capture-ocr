@@ -1,59 +1,76 @@
 use adw::prelude::*;
-
 use adw::{ActionRow, Application, ApplicationWindow, HeaderBar};
-use adw::gtk::{Box, ListBox, Orientation, SelectionMode};
+use adw::gtk::{Box as GtkBox, ListBox, Orientation, SelectionMode};
+use std::rc::Rc;
+use std::cell::Cell;
+use adw::glib::clone;
+//use adw::gtk::glib;
+use crate::ui::events::Events;
 
-pub fn ui_test() {
+pub fn ui_test() -> Events {
     let application = Application::builder()
         .application_id("com.example.FirstAdwaitaApp")
         .build();
 
-    application.connect_activate(|app| {
-        // ActionRows are only available in Adwaita
-        let row = ActionRow::builder()
+    // Valor compartido entre closures
+    // Events debe derivar Copy para poder usar Cell<Events>
+    let result = Rc::new(Cell::new(Events::Cancelled));
+
+    application.connect_activate(clone!(#[strong] result, move |app| {
+        // Construir la ventana PRIMERO para poder capturarla en los closures
+        let content = GtkBox::new(Orientation::Vertical, 0);
+        content.append(&HeaderBar::new());
+
+        let window = ApplicationWindow::builder()
+            .application(app)
+            .title("Extract text?")
+            .default_width(350)
+            .content(&content)
+            .build();
+
+        // ActionRow "Yes"
+        let row_yes = ActionRow::builder()
             .activatable(true)
             .title("Yes")
             .build();
-        row.connect_activated(|_| {
-            eprintln!("Extracting text from screenshot...");
-        });
 
-        let row_2 = ActionRow::builder()
+        let result_yes = result.clone();
+        row_yes.connect_activated(clone!(#[weak] window, move |_| {
+            result_yes.set(Events::ScreenshotOcr);
+            window.close();
+        }));
+
+        // ActionRow "No"
+        let row_no = ActionRow::builder()
             .activatable(true)
             .title("No")
             .width_request(50)
             .build();
-        row_2.connect_activated(|_| {
-            eprintln!("Taking screenshot...");
-        });
 
+        let result_no = result.clone();
+        row_no.connect_activated(clone!(#[weak] window, move |_| {
+            result_no.set(Events::Screenshot);
+            window.close();
+        }));
+
+        // ListBox
         let list = ListBox::builder()
             .margin_top(32)
             .margin_end(32)
             .margin_bottom(32)
             .margin_start(32)
             .selection_mode(SelectionMode::None)
-            // makes the list look nicer
             .css_classes(vec![String::from("boxed-list")])
             .build();
-        list.append(&row);
-        list.append(&row_2);
 
-        // Combine the content in a box
-        let content = Box::new(Orientation::Vertical, 0);
-        // Adwaitas' ApplicationWindow does not include a HeaderBar
-        content.append(&HeaderBar::new());
+        list.append(&row_yes);
+        list.append(&row_no);
+
         content.append(&list);
 
-        let window = ApplicationWindow::builder()
-            .application(app)
-            .title("Extract text?")
-            .default_width(350)
-            // add content to window
-            .content(&content)
-            .build();
         window.present();
-    });
+    }));
 
     application.run();
+    result.get()
 }

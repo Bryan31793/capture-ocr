@@ -13,8 +13,7 @@ pub async fn take_screenshot_proto() -> Option<std::string::String> {
                 Ok(result) => {
                     result
                 }
-                Err(e) => {
-                    println!("Error en la screenshot: {}", e);
+                Err(_e) => {
                     return None;
                 }
             }
