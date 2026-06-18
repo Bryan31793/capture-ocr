@@ -1,40 +1,41 @@
-import socket
-import sys
+from ocr_extract import load_image, init_ocr, extract_text, save_output
 
 def main():
-    socket_path = "/tmp/my_socket_bryan"
+    """
+    Funcion principal que orquesta todo el flujo de extracción de OCR.
     
-    try:
-        # Connect to server
-        client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        client.connect(socket_path)
-        print(f"✓ Connected to {socket_path}")
-        
-        # Send message
-        message = b"hello from python"
-        client.sendall(message)
-        print(f"→ Sent: {message.decode()}")
-        
-        # Receive response
-        response = client.recv(1024)
-        print(f"← Response: {response.decode()}")
-        
-    except FileNotFoundError:
-        print(f"✗ Error: Socket not found at {socket_path}")
-        print("  Make sure the Rust server is running")
-        sys.exit(1)
-    except ConnectionRefusedError:
-        print(f"✗ Error: Connection refused by {socket_path}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"✗ Error: {e}")
-        sys.exit(1)
-    finally:
-        try:
-            client.close()
-            print("✓ Connection closed")
-        except:
-            pass
+    Flujo:
+        1. Inicializa argumentos
+        2. Valida que la imagen exista
+        3. Inicializa PaddleOCR con el idioma especificado
+        4. Extrae texto de la imagen
+        5. (Opcional) Guarda el resultado en un archivo
+        6. Muestra estadisticas de líneas extraidas
+    """
+
+    #Initialize arguments
+    image = "/home/bryan/capture-ocr/ocr/pdf_screenshot.png"
+    lang = "en"
+    show_boxes = False
+    min_confidence = 0.5
+    output_path = "/home/bryan/capture-ocr/ocr/output/out.txt"
+
+    image_path = load_image(image)
+    ocr = init_ocr(lang)
+    text = extract_text(
+        ocr,
+        image_path,
+        min_confidence,
+        show_boxes
+    )
+
+    if output_path and text:
+        save_output(text, output_path)
+
+    if not text:
+        print("\n[RESULTADO] Sin texto extraido.")
+    else:
+        print(f"\n[RESULTADO] {len(text.splitlines())} lineas extraidas.")
 
 if __name__ == "__main__":
     main()

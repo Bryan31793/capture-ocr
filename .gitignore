@@ -2,7 +2,7 @@
 # Rust / Cargo
 # ========================================
 
-/target/
+target/
 
 # Si es una aplicación final, normalmente sí se versiona Cargo.lock.
 # Si es una librería, normalmente no.
@@ -21,6 +21,7 @@ __pycache__/
 
 # Entornos virtuales
 .venv/
+.venv_paddleocr
 venv/
 env/
 ENV/
