@@ -5,16 +5,22 @@
 
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::io::{Read, Write, Result as IoResult};
-use std::process::Command;
+use std::process::Command;  
 use std::thread;
 use std::time::Duration;
 use crate::ipc_server::socket_config::SocketConfig;
+use crate::ipc_server::json_data::{OcrRequest, OcrResponse};
 
 // Starts the Inter-process Communication between rust and python
-pub fn start_ipc(socket_config: &SocketConfig, message: &str) {
+/// TODO:
+/// message will be a OcrRequest
+/// refactorize listener into a create_socket_server fn
+/// refactorize stream into a create_stream_socket
+pub fn start_ipc(socket_config: &SocketConfig, req: &OcrRequest) {
     // que pasa si tengo dos procesoss con el mismo socket_path??
     let _ = std::fs::remove_file(socket_config.path());
 
+    
     let listener = match UnixListener::bind(socket_config.path()) {
         Ok(l) => {
             println!("Conexion exitosa desde rust");
@@ -25,20 +31,33 @@ pub fn start_ipc(socket_config: &SocketConfig, message: &str) {
             return;
             //podria regresar un bool
         }
-    };
+    }; 
+
+    //let listener = UnixListener::bind(socket_config.path())?;
 
     let program = socket_config.program().to_string();
     let process_path = socket_config.process_path().to_string();
     thread::spawn(move || {
         spawn_python_client(&program, &process_path);
     });
-
+ 
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                match handle_client(&mut stream, message) {
-                    Ok(_) => {
-                        println!("comunicacion exitosa");
+                match handle_client(&mut stream, req) {
+                    Ok(response) => {
+                        match response {
+                            OcrResponse::Ok {data} => {
+                                println!("Bien hecho amigo Bryan");
+                            }
+                            OcrResponse::Error { code, message, retryable } => {
+                                eprintln!("Error [{code}]: {message}");
+                                if retryable.unwrap_or(false) {
+                                    println!("No se puede recuperar del error");
+                                }
+                            }
+                        }
+
                     }
                     Err(e) => {
                         println!("Error: {}", e)
@@ -50,7 +69,7 @@ pub fn start_ipc(socket_config: &SocketConfig, message: &str) {
                 println!("Error en la comunicacion: {}", e);
             }
         }
-    }
+    } 
 }
 
 
@@ -58,6 +77,8 @@ pub fn start_ipc(socket_config: &SocketConfig, message: &str) {
 /// 
 /// This process runs independently
 /// If it fails, it prints the error but doesn't affect the server
+/// TODO:
+/// a better aproach for the nested match
 fn spawn_python_client(program: &str, process_path: &str) {
     thread::sleep(Duration::from_secs(1));
 
@@ -93,15 +114,33 @@ fn spawn_python_client(program: &str, process_path: &str) {
 /// 
 /// # Parameters
 /// - stream: The bidirectional connection with the client
-fn handle_client(stream: &mut UnixStream, message_screenshot: &str) -> IoResult<()> {
-    let mut buffer: [u8; 1024] = [0; 1024];
+/// - message_screenshot: screenshots path
+/// TODO: change message_screenshot from str to OcrRequest
+fn handle_client(stream: &mut UnixStream, req: &OcrRequest) -> IoResult<OcrResponse> {
+    // Enviar: length prefix + payload
+    let payload = serde_json::to_vec(req)?;
+    let length = (payload.len() as u32).to_be_bytes();
+    stream.write_all(&length)?;
+    stream.write_all(&payload)?;
 
-    let n_bytes = stream.read(&mut buffer)?;
+    // Recibir: leer length prefix primero
+    let mut len_bytes = [0u8; 4];
+    stream.read_exact(&mut len_bytes)?;
+    let resp_len = u32::from_be_bytes(len_bytes) as usize;
+    
+    // Leer exactamente esa cantidad de bytes
+    let mut resp_buf = vec![0u8; resp_len];
+    stream.read_exact(&mut resp_buf)?;
 
-    let message = String::from_utf8_lossy(&buffer[..n_bytes]);
-    println!("Recibido desde rust: {}", message);
-
-    stream.write_all(message_screenshot.as_bytes())?;
-
-    Ok(())
+    let response: OcrResponse = serde_json::from_slice(&resp_buf)?;
+    Ok(response)
 }
+
+/* 
+fn send_request(stream: &mut UnixStream, req: &OcrRequest) -> IoResult<()> {
+    let payload = serde_json::to_vec(req)?;
+    let length = (payload.len() as u32).to_be_bytes();
+    stream.write_all(&length)?;
+    stream.write_all(&payload)?;
+    Ok(())
+} */

@@ -889,6 +889,9 @@ dependencies = [
  "fs_extra",
  "glib",
  "libadwaita",
+ "libc",
+ "serde",
+ "serde_json",
  "tempfile",
  "tokio",
 ]
