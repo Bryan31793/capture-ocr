@@ -3,6 +3,7 @@ import sys
 import os
 import struct
 import json
+from extract_text_main import start_extract_text
 
 def socket_pair_process():
     if len(sys.argv) < 2:
@@ -65,9 +66,10 @@ def send_response(sock: socket, response: dict):
 def handle_client(conn: socket):
     try:
         request = recv_request(conn)
-        #result = do_work(request)  #logica OCR, etc.
+        #result = inicio_ocr()  #logica OCR, etc.
         if request:
-            result = request["action"]
+            result = start_extract_text()
+            #result = request["action"]
         send_response(conn, {
             "status": "ok",
             "data": result

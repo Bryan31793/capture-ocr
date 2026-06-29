@@ -16,7 +16,13 @@ pub fn start_ipc_socketpair(request: &OcrRequest) {
 
     let socket2_fd = sock2.as_raw_fd();
 
-    let mut child = Command::new("python3")
+    let venv_python = std::env::var("OCR_PYTHON")
+    .unwrap_or_else(|_| "/home/bryan/capture-ocr/ocr/.venv_paddleocr/bin/python3".to_string());
+
+    // Debug: imprime la ruta resuelta
+    //eprintln!("Usando Python: {}", venv_python);
+
+    let mut child = Command::new(&venv_python)
         .args(["/home/bryan/capture-ocr/ocr/main.py", &socket2_fd.to_string()])
         .spawn()
         .expect("Failed to spawn process");

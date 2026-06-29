@@ -1,11 +1,8 @@
 pub mod ipc_server;
 pub mod screenshot;
 pub mod ui;
-use crate::ipc_server::socket_config;
 use crate::screenshot::take_screenshot;
 use crate::ui::events;
-use crate::ipc_server::json_data::OcrRequest;
-use crate::ipc_server::ipc_socketpair;
 use serde_json::json;
 //use crate::ui::ui_screenshot;
 use tokio;
@@ -14,7 +11,7 @@ use tokio;
 #[tokio::main]
 async fn main() {
 
-    /* 
+    
     let event= ui::ui_screenshot::ui_test();
 
     match event {
@@ -41,8 +38,8 @@ async fn main() {
                             "path": uri
                         }),
                     };
-                    let socket_config = socket_config::SocketConfig::default();
-                    ipc_server::ipc::start_ipc(&socket_config, &req);
+                    //let socket_config = socket_config::SocketConfig::default();
+                    ipc_server::ipc_socketpair::start_ipc_socketpair(&req);
                 }
 
                 None => {
@@ -50,13 +47,14 @@ async fn main() {
                 }
             }            
         }
-    }   */
+    }
+    /* 
    let request = OcrRequest{
     action: String::from("extract text"),
     payload: json!({
         "path": "/home/bryan/capture-ocr/ocr/captures/hello_world.png"
     })
    };
-   ipc_socketpair::start_ipc_socketpair(&request);
+   ipc_socketpair::start_ipc_socketpair(&request);*/
 }
 

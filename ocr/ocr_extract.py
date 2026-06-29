@@ -115,16 +115,15 @@ def extract_text(ocr, image_path: str, min_confidence: float, show_boxes: bool) 
                 continue
 
             lines.append(text)
-
+            """
             if show_boxes and i < len(polys):
                 box = polys[i]
                 coords = " | ".join(f"({int(p[0])},{int(p[1])})" for p in box)
                 print(f"  [{score:.2f}]  {text}")
                 print(f"         Coords: {coords}")
             else:
-                print(f"  [{score:.2f}]  {text}")
+                print(f"  [{score:.2f}]  {text}")"""
 
-    print("=" * 60)
     return "\n".join(lines)
 
 
