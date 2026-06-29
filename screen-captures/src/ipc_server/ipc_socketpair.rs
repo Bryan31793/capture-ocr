@@ -1,9 +1,10 @@
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
-use std::io::{Read, Write};
 use std::process::Command;
+use crate::ipc_server::json_data::{OcrRequest, OcrResponse};
+use crate::ipc_server::json_data;
 
-pub fn start_ipc_socketpair() {
+pub fn start_ipc_socketpair(request: &OcrRequest) {
     let (mut sock1, sock2) = UnixStream::pair().expect("Failed to create socket pair");
 
     // Quitar O_CLOEXEC de sock2 para que el hijo lo herede tras exec
@@ -20,11 +21,18 @@ pub fn start_ipc_socketpair() {
         .spawn()
         .expect("Failed to spawn process");
 
-    sock1.write_all(b"Hola python desde rust").unwrap();
+    //sock1.write_all(b"Hola python desde rust").unwrap();
+    json_data::send_request(&mut sock1, request).expect("Error al enviar request");
 
-    let mut buf = [0; 100];
-    let bytes_read = sock1.read(&mut buf).unwrap();
-    println!("Rust recibio: {}", String::from_utf8_lossy(&buf[..bytes_read]));
+    let response = json_data::receive_response(&mut sock1).expect("Error al recibir respuesta");
+    match response {
+        OcrResponse::Ok{data} => {
+            println!("Rust recibio: {}", data);
+        },
+        OcrResponse::Error { code, message, .. } => {
+            println!("Error {} {}", code, message);
+        }
+    }
 
     drop(sock2); // cerrar despues de comunicarse
     child.wait().unwrap();

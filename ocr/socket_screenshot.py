@@ -50,13 +50,13 @@ def socket_process():
             except:
                 pass
 
-def send_response(conn, response: dict):
+def send_response(conn: socket, response: dict):
     payload = json.dumps(response).encode("utf-8")
     length = struct.pack(">I", len(payload))  # 4 bytes big-endian
     conn.sendall(length + payload)
 
 
-def recv_request(conn) -> dict:
+def recv_request(conn: socket) -> dict:
     raw_len = conn.recv(4)
     if not raw_len:  # Connection closed
         raise EOFError("Connection closed by server")
@@ -67,7 +67,7 @@ def recv_request(conn) -> dict:
     return json.loads(data.decode("utf-8"))
 
 
-def handle_client(conn):
+def handle_client(conn: socket):
     try:
         request = recv_request(conn)
         #result = do_work(request)  # tu lógica OCR, etc.
