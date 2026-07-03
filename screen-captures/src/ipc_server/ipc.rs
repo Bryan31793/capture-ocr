@@ -9,7 +9,7 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use crate::ipc_server::socket_config::SocketConfig;
-use crate::ipc_server::json_data::{OcrRequest, OcrResponse};
+use crate::ocr::{OcrRequest, OcrResponse};
 
 // Starts the Inter-process Communication between rust and python
 /// TODO:

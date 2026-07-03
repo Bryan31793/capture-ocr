@@ -1,2 +1,2 @@
-pub mod ui_screenshot;
+pub mod screenshot_ocr_window;
 pub mod events;
