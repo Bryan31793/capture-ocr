@@ -2,12 +2,14 @@ use serde::{Deserialize, Serialize};
 use std::io::{Read, Result as IoResult, Write};
 use std::os::unix::net::UnixStream;
 
+#[derive(Debug)]
 #[derive(Serialize)]
 pub struct OcrRequest {
     pub action: String,
     pub payload: serde_json::Value,
 }
     
+#[derive(Debug)]
 #[derive(Deserialize)]
 #[serde(tag = "status", rename_all = "lowercase")]
 pub enum OcrResponse {

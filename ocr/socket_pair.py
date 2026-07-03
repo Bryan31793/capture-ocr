@@ -68,7 +68,7 @@ def handle_client(conn: socket):
         request = recv_request(conn)
         #result = inicio_ocr()  #logica OCR, etc.
         if request:
-            result = start_extract_text()
+            result = start_extract_text(request["payload"]["path"])
             #result = request["action"]
         send_response(conn, {
             "status": "ok",

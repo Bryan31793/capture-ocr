@@ -1,6 +1,6 @@
 from ocr_extract import load_image, init_ocr, extract_text, save_output
 
-def start_extract_text() -> str:
+def start_extract_text(image: str) -> str:
     """
     Funcion principal que orquesta todo el flujo de extracción de OCR.
     
@@ -14,7 +14,7 @@ def start_extract_text() -> str:
     """
 
     #Initialize arguments
-    image = "/home/bryan/capture-ocr/ocr/captures/pdf_screenshot.png"
+    #image = "/home/bryan/capture-ocr/ocr/captures/pdf_screenshot.png"
     lang = "en"
     show_boxes = False
     min_confidence = 0.5

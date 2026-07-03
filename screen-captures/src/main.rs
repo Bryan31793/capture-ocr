@@ -6,6 +6,8 @@ use crate::ui::events;
 use serde_json::json;
 //use crate::ui::ui_screenshot;
 use tokio;
+use std::thread;
+use std::time::Duration;
 
 /// Main server entry point
 #[tokio::main]
@@ -14,6 +16,7 @@ async fn main() {
     
     let event= ui::ui_screenshot::ui_test();
 
+    thread::sleep(Duration::from_millis(100));
     match event {
         events::Events::Screenshot | events::Events::Cancelled => {
             let respuesta_prto = take_screenshot::take_screenshot_proto().await;
@@ -38,6 +41,7 @@ async fn main() {
                             "path": uri
                         }),
                     };
+                    //dbg!(&req);
                     //let socket_config = socket_config::SocketConfig::default();
                     ipc_server::ipc_socketpair::start_ipc_socketpair(&req);
                 }
