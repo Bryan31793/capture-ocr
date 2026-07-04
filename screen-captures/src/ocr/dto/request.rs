@@ -9,6 +9,8 @@ pub struct OcrRequest {
 }
 
 /// Serialize the request into bytes and send them through the socket.
+/// TODO:
+/// make it a method instead of a function
 pub fn send_request(socket: &mut UnixStream, req: &OcrRequest) -> IoResult<()> {
     let payload = serde_json::to_vec(req)?;
     let length = (payload.len() as u32).to_be_bytes();

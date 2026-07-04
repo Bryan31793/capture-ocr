@@ -16,6 +16,8 @@ pub enum OcrResponse {
 }
 
 /// Receive bytes from the socket and deserialize them into an OcrResponse.
+/// TODO:
+/// make it a method instead of a function
 pub fn receive_response(socket: &mut UnixStream) -> IoResult<OcrResponse> {
     let mut buff = [0u8; 4];
     socket.read_exact(&mut buff)?;
