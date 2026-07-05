@@ -9,7 +9,7 @@ use std::time::Duration;
 pub async fn run() {
     let event = crate::ui::screenshot_ocr_window::ui_test();
 
-    thread::sleep(Duration::from_millis(100));
+    thread::sleep(Duration::from_millis(150));
     match event {
         Events::Screenshot | Events::Cancelled => {
             let screenshot_path = take_screenshot_proto().await;

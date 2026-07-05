@@ -1,6 +1,7 @@
 use serde::Serialize;
-use std::io::{Result as IoResult, Write};
+use std::io::Write;
 use std::os::unix::net::UnixStream;
+use crate::ocr::dto::error::RequestError;
 
 #[derive(Debug, Serialize)]
 pub struct OcrRequest {
@@ -8,13 +9,15 @@ pub struct OcrRequest {
     pub payload: serde_json::Value,
 }
 
-/// Serialize the request into bytes and send them through the socket.
-/// TODO:
-/// make it a method instead of a function
-pub fn send_request(socket: &mut UnixStream, req: &OcrRequest) -> IoResult<()> {
-    let payload = serde_json::to_vec(req)?;
-    let length = (payload.len() as u32).to_be_bytes();
-    socket.write_all(&length)?;
-    socket.write_all(&payload)?;
-    Ok(())
+impl OcrRequest {
+    /// Serialize the request into bytes and send them through the socket.
+    /// TODO:
+    /// make it a trait instead of a method
+    pub fn send_request(&self, socket: &mut UnixStream) -> Result<(), RequestError> {
+        let payload = serde_json::to_vec(self)?;
+        let length = (payload.len() as u32).to_be_bytes();
+        socket.write_all(&length)?;
+        socket.write_all(&payload)?;
+        Ok(())
+    }
 }
