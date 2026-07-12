@@ -9,7 +9,7 @@ use crate::ui::events::Events;
 
 pub fn ui_test() -> Events {
     let application = Application::builder()
-        .application_id("com.example.FirstAdwaitaApp")
+        .application_id("screenshot.ocr")
         .build();
 
     // Valor compartido entre closures

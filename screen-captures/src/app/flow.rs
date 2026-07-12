@@ -2,6 +2,8 @@ use crate::ocr::service::service;
 use crate::ocr::OcrRequest;
 use crate::capture::screenshot::take_screenshot_proto;
 use crate::ui::events::Events;
+use crate::clipboard::set_clipboard;
+use crate::ui::clipboard_window::clipboard_box;
 use serde_json::json;
 use std::thread;
 use std::time::Duration;
@@ -34,7 +36,12 @@ pub async fn run() {
                     };
                     let text = service(&request);
                     println!("Rust recibio: {}", text.text());
-                    //start_ipc_socketpair(&request);
+                    
+                    let handle = thread::spawn(move || {
+                        set_clipboard::write_clipboard(String::from(text.text()));
+                    });
+                    clipboard_box();
+                    handle.join().unwrap();
                 }
                 None => {
                     println!("pinche gobierno puto. Se cancelo el proceso de la screenshot");
