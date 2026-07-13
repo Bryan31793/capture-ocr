@@ -1,4 +1,5 @@
 use crate::ocr::service::service;
+use crate::ocr::config::runtime_config::RuntimeConfig;
 use crate::ocr::OcrRequest;
 use crate::capture::screenshot::take_screenshot_proto;
 use crate::ui::events::Events;
@@ -9,6 +10,7 @@ use std::thread;
 use std::time::Duration;
 
 pub async fn run() {
+    let runtime_config = RuntimeConfig::default();
     let event = crate::ui::screenshot_ocr_window::ui_test();
 
     thread::sleep(Duration::from_millis(150));
@@ -34,8 +36,8 @@ pub async fn run() {
                             "path": uri
                         }),
                     };
-                    let text = service(&request);
-                    println!("Rust recibio: {}", text.text());
+                    let text = service(&request, &runtime_config);
+                    //println!("Rust recibio: {}", text.text());
                     
                     let handle = thread::spawn(move || {
                         set_clipboard::write_clipboard(String::from(text.text()));

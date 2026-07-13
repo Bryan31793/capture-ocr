@@ -1,5 +1,6 @@
 use crate::ocr::dto::request::OcrRequest;
 use crate::ocr::dto::response::{receive_response, OcrResponse};
+use crate::ocr::config::runtime_config::RuntimeConfig;
 use crate::ocr::transport::error::{ProcessError, ProcessData, SocketError};
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
@@ -7,9 +8,10 @@ use std::process::Command;
 use std::thread;
 
 /// Start the ipc using socketpair
-/// TODO:
-/// separate hard coded paths into a different file
-pub fn start_ipc_socketpair(request: &OcrRequest) -> Result<OcrResponse, SocketError> {
+pub fn start_ipc_socketpair(
+    request: &OcrRequest,
+    runtime_config: &RuntimeConfig,
+) -> Result<OcrResponse, SocketError> {
     let (mut sock1, sock2) = UnixStream::pair()?;
 
     //fd must surivive exec()
@@ -23,12 +25,10 @@ pub fn start_ipc_socketpair(request: &OcrRequest) -> Result<OcrResponse, SocketE
     }
 
     let socket2_fd = sock2.as_raw_fd().to_string();
-    let path = String::from("/home/bryan/capture-ocr/ocr/main.py");
-    let venv_python = std::env::var("OCR_PYTHON")
-        .unwrap_or_else(|_| "/home/bryan/capture-ocr/ocr/.venv_paddleocr/bin/python3".to_string());
+    let runtime_config = runtime_config.clone();
 
     thread::spawn(move || -> Result<(), ProcessError> {
-        spawn_process(&venv_python, &path, &socket2_fd)?;
+        spawn_process(&runtime_config, &socket2_fd)?;
         Ok(())
     });
     
@@ -40,29 +40,34 @@ pub fn start_ipc_socketpair(request: &OcrRequest) -> Result<OcrResponse, SocketE
 }
 
 /// Create child process in charge of OCR
-fn spawn_process(program: &String, path: &String, socket_fd: &String) -> Result<(), ProcessError>{
-    let mut child = Command::new(program)
-        .args([path, socket_fd])
+fn spawn_process(
+    runtime_config: &RuntimeConfig,
+    socket_fd: &str,
+) -> Result<(), ProcessError> {
+    let program = runtime_config.python_path.to_string_lossy().into_owned();
+    let path = runtime_config.ocr_script_path.to_string_lossy().into_owned();
+
+    let mut child = Command::new(&runtime_config.python_path)
+        .arg(&runtime_config.ocr_script_path)
+        .arg(socket_fd)
         .spawn()
-        .map_err(|err| ProcessError::SpawnProcess { 
-            process_data: ProcessData::new(String::from(program), String::from(path)),
-            source: err 
+        .map_err(|err| ProcessError::SpawnProcess {
+            process_data: ProcessData::new(program.clone(), path.clone()),
+            source: err
         })?;
 
     let status = child.wait()
-        .map_err(|err| ProcessError::WaitProcess { 
-            process_data: ProcessData::new(String::from(program), String::from(path)),
-            source: err 
+        .map_err(|err| ProcessError::WaitProcess {
+            process_data: ProcessData::new(program.clone(), path.clone()),
+            source: err
         })?;
 
     if status.success() {
         return Ok(());
     } else {
-        return Err(
-            ProcessError::ProcessExitFailed {
-                process_data: ProcessData::new(String::from(program), String::from(path)),
-                exit_code: status.code().unwrap_or(-1),
-            }
-        );
+        return Err(ProcessError::ProcessExitFailed {
+            process_data: ProcessData::new(program, path),
+            exit_code: status.code().unwrap_or(-1),
+        });
     }
 }
